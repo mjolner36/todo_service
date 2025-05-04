@@ -2,18 +2,18 @@ package api
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"todo_service/internal/service"
+	"todo_service/internal/handler"
 )
 
 type Routers struct {
-	service service.Service
+	TaskHandler handler.TaskHandler
 }
 
 func NewRouters(routers *Routers) *fiber.App {
 	app := fiber.New()
 	group := app.Group("/v1")
 
-	group.Post("create_task", routers.service.CreateTask)
+	group.Post("tasks", routers.TaskHandler.CreateTask)
 
 	return app
 }

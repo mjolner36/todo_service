@@ -1,6 +1,6 @@
-package service
+package dto
 
-type Task struct {
+type CreateTaskRequest struct {
 	Title       string `json:"name" validate:"required"`
 	Description string `json:"description"`
 }
