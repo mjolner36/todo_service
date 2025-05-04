@@ -30,5 +30,5 @@ func (service *service) CreateTask(oldTask *dto.CreateTaskRequest) (int, error) 
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-	return service.repo.CreateTask(context.TODO(), newTask)
+	return service.repo.CreateTask(context.Background(), newTask)
 }
