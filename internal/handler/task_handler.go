@@ -32,5 +32,8 @@ func (taskHandler *taskHandler) CreateTask(c *fiber.Ctx) error {
 		taskHandler.log.Error("failed to create task", "err", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "failed to create task"})
 	}
-	return c.Status(fiber.StatusCreated).JSON(createTask)
+	return c.Status(fiber.StatusCreated).JSON(dto.Response{
+		Status: "success",
+		Data:   createTask,
+	})
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
@@ -42,12 +43,48 @@ func TestCreateTask(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
-		// Проверяем ответ
-		//var response dto.Response
-		//json.NewDecoder(resp.Body).Decode(&response)
-		//assert.Equal(t, "success", response.Status)
+		var response dto.Response
+		json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, "success", response.Status)
 
 		// Проверяем вызов мок-методов
 		mockService.AssertExpectations(t)
+	})
+	t.Run("invalid json request", func(t *testing.T) {
+		invalidBody := []byte(`{invalid json}`)
+
+		req, err := http.NewRequest("POST", "/tasks", bytes.NewReader(invalidBody))
+		assert.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var response map[string]string
+		json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, "invalid request", response["error"])
+	})
+	t.Run("service returns error", func(t *testing.T) {
+		taskReq := &dto.CreateTaskRequest{
+			Title:       "Test Title",
+			Description: "Test Description",
+		}
+		body, _ := json.Marshal(taskReq)
+
+		mockService.On("CreateTask", taskReq).
+			Return(0, errors.New("db error")).Once()
+
+		req, err := http.NewRequest("POST", "/tasks", bytes.NewReader(body))
+		assert.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var response map[string]string
+		json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, "failed to create task", response["error"])
 	})
 }
